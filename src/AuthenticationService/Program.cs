@@ -2,6 +2,7 @@ using AuthenticationService;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Data;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,8 +39,11 @@ builder.Services.AddOpenTelemetryTracing(builder =>
     // Instrumentation
     // Automatic, search NuGet for OpenTelemetry.Instrumentation to view all.
     builder.AddAspNetCoreInstrumentation();
-    builder.AddSqlClientInstrumentation();
-
+    builder.AddSqlClientInstrumentation(x =>
+    {
+        x.Enrich = (activity, name, command) => { activity.DisplayName = ((IDbCommand)command).CommandText; };
+    });
+    builder.AddEntityFrameworkCoreInstrumentation();
 
     // Custom
     // builder.AddSource("");
