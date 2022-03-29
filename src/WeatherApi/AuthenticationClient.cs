@@ -8,9 +8,9 @@ namespace WeatherApi
         private readonly HttpClient _httpClient;
         private readonly Uri _authServiceUrl;
 
-        public AuthenticationClient(HttpClient httpClient, IConfiguration configuration)
+        public AuthenticationClient(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("UnsafeHttpClient");
             _authServiceUrl = new Uri(configuration.GetConnectionString("AuthenticationService"));
         }
 
@@ -23,7 +23,9 @@ namespace WeatherApi
             response.EnsureSuccessStatusCode();
 
             var userJson = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<User>(userJson);
+
+            var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+            return JsonSerializer.Deserialize<User>(userJson, options);
         }
     }
 }

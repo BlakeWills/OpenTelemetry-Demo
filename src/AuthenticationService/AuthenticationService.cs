@@ -1,42 +1,30 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using System.Data.SqlClient;
-using System.Security.Cryptography;
 
 namespace AuthenticationService
 {
     public class AuthenticationService
     {
-        private readonly string _connectionString;
-        private readonly RandomNumberGenerator _random;
+        private readonly UserDbContext _userDbContext;
 
-        public AuthenticationService(IConfiguration config)
+        public AuthenticationService(UserDbContext userDbContext)
         {
-            _connectionString = config.GetConnectionString("UserDB");
-            _random = RandomNumberGenerator.Create();
+            _userDbContext = userDbContext;
         }
 
         public async Task<SignInResult> AuthenticateUser(BasicAuthenticationRequest request)
         {
-            using var connection = new SqlConnection(_connectionString);
-            using var command = connection.CreateCommand();
+            var hashedPassword = HashPassword(request.Username, request.Password);
+            var user = _userDbContext.Users.SingleOrDefault(u => u.Username == request.Username && u.Password == hashedPassword);
 
-            command.CommandText = "SELECT [UserName], [Country] FROM [USERS] WHERE UserName = @USERNAME AND PASSWORD = @PASSWORD";
-            command.Parameters.AddWithValue("username", request.Username);
-            command.Parameters.AddWithValue("password", HashPassword(request.Username, request.Password));
-
-            await connection.OpenAsync();
-
-            using var reader = await command.ExecuteReaderAsync();
-
-            if (reader.Read())
+            if(user != default)
             {
                 return new SignInResult()
                 {
                     IsAuthenticated = true,
-                    User = new User()
+                    User = new UserViewModel()
                     {
-                        Name = reader.GetString(0),
-                        Country = reader.GetString(1)
+                        Name = user.Username,
+                        Country = user.Country
                     }
                 };
             }
@@ -65,6 +53,6 @@ namespace AuthenticationService
     {
         public bool IsAuthenticated { get; set; }
 
-        public User User { get; set; }
+        public UserViewModel User { get; set; }
     }
 }

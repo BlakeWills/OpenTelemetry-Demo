@@ -1,0 +1,78 @@
+version: '3.1'
+services:
+  collector:
+    build: ./Collector
+    image: oteltalk-collector:latest
+    ports:
+      - 8888:8888
+      - 4317:4317
+      - 4318:4318
+    networks:
+      - otel_net
+
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250"
+    networks:
+      - otel_net
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - otel_net
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.16.3
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: '["http://es01:9200"]'
+    networks:
+      - otel_net
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:7.16.3
+    depends_on:
+      - es01
+      - kib01
+    cap_add: ["CHOWN", "DAC_OVERRIDE", "SETGID", "SETUID"]
+    cap_drop: ["ALL"]
+    ports:
+      - 8200:8200
+    networks:
+      - otel_net
+    command: >
+        apm-server -e
+          -E apm-server.rum.enabled=true
+          -E setup.kibana.host=kib01:5601
+          -E setup.template.settings.index.number_of_replicas=0
+          -E apm-server.kibana.enabled=true
+          -E apm-server.kibana.host=kib01:5601
+          -E output.elasticsearch.hosts=["es01:9200"]
+
+volumes:
+  data01:
+    driver: local
+
+networks:
+  otel_net:

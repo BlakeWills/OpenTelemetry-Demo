@@ -22,10 +22,7 @@ namespace AuthenticationService.Controllers
 
             if(!authHeader.StartsWith("Basic "))
             {
-                return Unauthorized(new SignInResult()
-                {
-                    IsAuthenticated = false
-                });
+                return Unauthorized();
             }
 
             var header = AuthenticationHeaderValue.Parse(Request.Headers.Authorization);
@@ -41,10 +38,10 @@ namespace AuthenticationService.Controllers
 
             if(!result.IsAuthenticated)
             {
-                return Unauthorized(result);
+                return Unauthorized();
             }
 
-            return Ok(result);
+            return Ok(result.User);
         }
     }
 }

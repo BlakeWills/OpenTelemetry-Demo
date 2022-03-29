@@ -1,0 +1,72 @@
+version: '3.4'
+
+services:
+
+  userdb:
+    image: "mcr.microsoft.com/mssql/server"
+    container_name: userdb
+    hostname: userdb
+    ports:
+      - 1433:1433
+    environment:
+        SA_PASSWORD: "p@55w0rd"
+        ACCEPT_EULA: "Y"
+    networks:
+      - weatherapi_net
+
+  authenticationservice:
+    image: ${DOCKER_REGISTRY-}authenticationservice
+    container_name: authenticationservice
+    build:
+      context: .
+      dockerfile: AuthenticationService/Dockerfile
+    ports:
+      - 8081:443
+    networks:
+      - weatherapi_net
+
+  forecastservice:
+    image: ${DOCKER_REGISTRY-}forecastservice
+    container_name: forecastservice
+    build:
+      context: .
+      dockerfile: ForecastService/Dockerfile
+    ports:
+      - 8082:443
+    networks:
+      - weatherapi_net
+
+  weatherapi:
+    image: ${DOCKER_REGISTRY-}weatherapi
+    build:
+      context: .
+      dockerfile: WeatherApi/Dockerfile
+    ports:
+      - 8080:443
+    networks:
+      - weatherapi_net
+
+  collector:
+    container_name: collector
+    build: 
+      context: C:/Users/Blake/source/repos/OtelTalk/src/Collector
+    image: oteltalk-collector:latest
+    ports:
+        - 8888:8888
+        - 4317:4317
+        - 4318:4318
+    networks:
+        - weatherapi_net
+
+  jaeger-all-in-one:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+        - "16686:16686"
+        - "14268"
+        - "14250"
+    networks:
+        - weatherapi_net
+
+networks:
+  weatherapi_net:

@@ -1,6 +1,6 @@
 ﻿namespace AuthenticationService
 {
-    public class User
+    public class UserViewModel
     {
         public string Name { get; set; }
 
