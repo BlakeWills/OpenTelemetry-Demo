@@ -52,21 +52,32 @@ services:
       context: C:/Users/Blake/source/repos/OtelTalk/src/Collector
     image: oteltalk-collector:latest
     ports:
-        - 8888:8888
-        - 4317:4317
-        - 4318:4318
+      - 8888:8888
+      - 4317:4317
+      - 4318:4318
+      - 8889:8889
     networks:
-        - weatherapi_net
+      - weatherapi_net
 
   jaeger-all-in-one:
     container_name: jaeger
     image: jaegertracing/all-in-one:latest
     ports:
-        - "16686:16686"
-        - "14268"
-        - "14250"
+      - "16686:16686"
+      - "14268"
+      - "14250"
     networks:
-        - weatherapi_net
+      - weatherapi_net
+
+  prometheus:
+    container_name: prometheus
+    build: 
+      context: C:/Users/Blake/source/repos/OtelTalk/src/Prometheus
+    image: oteltalk-prometheus:latest
+    ports:
+      - 9090:9090
+    networks:
+      - weatherapi_net
 
 networks:
   weatherapi_net:

@@ -22,6 +22,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Collector", "Collector", "{
 		Collector\Dockerfile = Collector\Dockerfile
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Prometheus", "Prometheus", "{321F30E0-8793-4ED4-BB2C-D67E2046A7C7}"
+	ProjectSection(SolutionItems) = preProject
+		Prometheus\Dockerfile = Prometheus\Dockerfile
+		Prometheus\prometheus.yml = Prometheus\prometheus.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

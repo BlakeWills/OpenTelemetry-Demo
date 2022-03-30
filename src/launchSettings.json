@@ -2,9 +2,6 @@
   "profiles": {
     "Docker Compose": {
       "commandName": "DockerCompose",
-      "composeLaunchAction": "LaunchBrowser",
-      "composeLaunchServiceName": "weatherapi",
-      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger",
       "commandVersion": "1.0",
       "serviceActions": {
         "authenticationservice": "StartDebugging",
@@ -12,7 +9,8 @@
         "forecastservice": "StartDebugging",
         "jaeger-all-in-one": "StartWithoutDebugging",
         "userdb": "StartWithoutDebugging",
-        "weatherapi": "StartDebugging"
+        "weatherapi": "StartDebugging",
+        "prometheus": "StartWithoutDebugging"
       }
     }
   }

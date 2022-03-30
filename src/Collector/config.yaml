@@ -4,15 +4,27 @@ receivers:
       grpc:
       http:
 
+  # Dummy - never used
+  otlp/spanmetrics:
+    protocols:
+      grpc:
+        endpoint: "localhost:12345"
+
 processors:
   batch:
     timeout: 10s
+
+  spanmetrics:
+    metrics_exporter: prometheus
 
 exporters:
   jaeger:
     endpoint: jaeger-all-in-one:14250
     tls:
       insecure: true
+
+  prometheus:
+    endpoint: "0.0.0.0:8889"
 
   #otlp/elastic: 
   #  # Elastic APM server https endpoint without the "https://" prefix
@@ -27,5 +39,12 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [spanmetrics, batch]
       exporters: [jaeger, logging]
+
+    metrics:
+      # This receiver is just a dummy and never used.
+      # Added to pass validation requiring at least one receiver in a pipeline.
+      receivers: [otlp/spanmetrics]
+      # The metrics_exporter must be present in this list.
+      exporters: [prometheus]
