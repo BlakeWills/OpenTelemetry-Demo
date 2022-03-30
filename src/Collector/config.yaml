@@ -12,10 +12,14 @@ receivers:
 
 processors:
   batch:
-    timeout: 10s
+    timeout: 1s # For demo only. In prod we have 10s
 
   spanmetrics:
     metrics_exporter: prometheus
+    dimensions:
+      - name: http.method
+      - name: http.status_code
+      - name: peer.service
 
 exporters:
   jaeger:

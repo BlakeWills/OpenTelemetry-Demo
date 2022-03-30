@@ -4,8 +4,8 @@ services:
 
   userdb:
     image: "mcr.microsoft.com/mssql/server"
-    container_name: userdb
-    hostname: userdb
+    container_name: mssqlsvr
+    hostname: mssqlsvr
     ports:
       - 1433:1433
     environment:
