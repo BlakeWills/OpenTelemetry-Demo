@@ -2,46 +2,38 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace AuthenticationService.Controllers
+namespace AuthenticationService.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class AuthenticationController(AuthenticationService authenticationService) : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class AuthenticationController : ControllerBase
+    [HttpPost("authenticate")]
+    public async Task<IActionResult> Authenticate()
     {
-        private readonly AuthenticationService _authenticationService;
+        var authHeader = Request.Headers.Authorization.ToString();
 
-        public AuthenticationController(AuthenticationService authenticationService)
+        if(!authHeader.StartsWith("Basic "))
         {
-            _authenticationService = authenticationService;
+            return Unauthorized();
         }
 
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> Authenticate()
+        var header = AuthenticationHeaderValue.Parse(authHeader);
+        var authInfo = Encoding.UTF8.GetString(Convert.FromBase64String(header.Parameter!)).Split(':');
+
+        var request = new BasicAuthenticationRequest()
         {
-            var authHeader = Request.Headers.Authorization.ToString();
+            Username = authInfo[0],
+            Password = authInfo[1]
+        };
 
-            if(!authHeader.StartsWith("Basic "))
-            {
-                return Unauthorized();
-            }
+        var result = await authenticationService.AuthenticateUser(request);
 
-            var header = AuthenticationHeaderValue.Parse(Request.Headers.Authorization);
-            var authInfo = Encoding.UTF8.GetString(Convert.FromBase64String(header.Parameter!)).Split(':');
-
-            var request = new BasicAuthenticationRequest()
-            {
-                Username = authInfo[0],
-                Password = authInfo[1]
-            };
-
-            var result = await _authenticationService.AuthenticateUser(request);
-
-            if(!result.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
-
-            return Ok(result.User);
+        if(!result.IsAuthenticated)
+        {
+            return Unauthorized();
         }
+
+        return Ok(result.User);
     }
 }

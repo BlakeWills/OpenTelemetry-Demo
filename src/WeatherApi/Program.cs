@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
@@ -6,9 +7,9 @@ using WeatherApi;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton<AuthenticationClient>();
 builder.Services.AddSingleton<ForecastClient>();
 
+// TODO: Can we remove this?
 builder.Services.AddHttpClient("UnsafeHttpClient").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
     ClientCertificateOptions = ClientCertificateOption.Manual,
@@ -19,52 +20,41 @@ builder.Services.AddHttpClient("UnsafeHttpClient").ConfigurePrimaryHttpMessageHa
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+
 // Configure OpenTelemetry Tracing
-builder.Services.AddOpenTelemetryTracing(builder =>
-{
-    var resourceBuilder = ResourceBuilder.CreateEmpty()
-        .AddService(Assembly.GetEntryAssembly()!.GetName().Name,                        // Name of the service
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource =>
+    {
+        resource.AddService(builder.Environment.ApplicationName,
             serviceNamespace: "otelTalk",                                               // Group related services
             serviceVersion: Assembly.GetEntryAssembly()!.GetName().Version!.ToString(), // REALLY useful for deployment tracking
-            autoGenerateServiceInstanceId: true);                                       // You can provide an instance id or provide your own, E.G. host name.
+            autoGenerateServiceInstanceId: true);
 
-    var attributes = new Dictionary<string, object>()
+        var attributes = new Dictionary<string, object>()
+        {
+            { "environment", "production" },            // Check the docs for your APM tool for correct naming. (DataDog is deployment.environment)
+            { "mycompany.service.owningteam", "SRE" }   // Useful for filtering and alerting
+        };
+
+        resource.AddAttributes(attributes);
+    })
+    .WithTracing(tracingConfig =>
     {
-        { "environment", "production" },            // Check the docs for your APM tool for correct naming. (DataDog is deployment.environment)
-        { "mycompany.service.owningteam", "SRE" }   // Useful for filtering and alerting
-    };
+        tracingConfig.AddAspNetCoreInstrumentation();
+        tracingConfig.AddSqlClientInstrumentation();
+        tracingConfig.AddHttpClientInstrumentation();
 
-    resourceBuilder.AddAttributes(attributes);
-    builder.SetResourceBuilder(resourceBuilder);    // Ensure resource attributes get added to our exported spans
-
-    // Instrumentation
-    // Automatic, search NuGet for OpenTelemetry.Instrumentation to view all.
-    builder.AddAspNetCoreInstrumentation();
-    builder.AddSqlClientInstrumentation();
-    builder.AddHttpClientInstrumentation();
-
-    // TODO: Add correlation id response header
-    // TODO: Sql instrumentation
-    // TODO: Add error tracking (http client vs asp.net)
-
-    // Custom
-    // builder.AddSource("");
-
-    // Exporters: Where do we want traces to go?
-    // Console is really useful for debugging trace and architecture issues. (E.G. Is this trace even being listened too?)
-    // builder.AddConsoleExporter(options => options.Targets = OpenTelemetry.Exporter.ConsoleExporterOutputTargets.Console);
-
-    // Send traces to the OpenTelemetryCollector
-    AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true); // required for HTTP Grpc
-    builder.AddOtlpExporter(options =>
-    {
-        options.Endpoint = new Uri("http://collector:4317"); // @ Codat we fetch this from KeyVault, I promise
+        AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true); // required for HTTP Grpc
+        tracingConfig.AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri("http://collector:4317"); // @ Codat we fetch this from KeyVault, I promise
+        });
     });
-});
 
 var app = builder.Build();
 

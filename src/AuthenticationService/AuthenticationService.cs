@@ -1,58 +1,50 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
-namespace AuthenticationService
+namespace AuthenticationService;
+
+public class AuthenticationService(UserDbContext userDbContext)
 {
-    public class AuthenticationService
+    public async Task<SignInResult> AuthenticateUser(BasicAuthenticationRequest request)
     {
-        private readonly UserDbContext _userDbContext;
+        var hashedPassword = HashPassword(request.Username, request.Password);
+        var user = userDbContext.Users.SingleOrDefault(u => u.Username == request.Username && u.Password == hashedPassword);
 
-        public AuthenticationService(UserDbContext userDbContext)
+        if(user != default)
         {
-            _userDbContext = userDbContext;
-        }
-
-        public async Task<SignInResult> AuthenticateUser(BasicAuthenticationRequest request)
-        {
-            var hashedPassword = HashPassword(request.Username, request.Password);
-            var user = _userDbContext.Users.SingleOrDefault(u => u.Username == request.Username && u.Password == hashedPassword);
-
-            if(user != default)
-            {
-                return new SignInResult()
-                {
-                    IsAuthenticated = true,
-                    User = new UserViewModel()
-                    {
-                        Name = user.Username,
-                        Country = user.Country
-                    }
-                };
-            }
-
             return new SignInResult()
             {
-                IsAuthenticated = false
+                IsAuthenticated = true,
+                User = new UserViewModel()
+                {
+                    Name = user.Username,
+                    Country = user.Country
+                }
             };
         }
 
-        private string HashPassword(string username, string password)
+        return new SignInResult()
         {
-            var salt = System.Text.Encoding.UTF8.GetBytes(username);
-
-            // derive a 256-bit subkey (use HMACSHA256 with 100,000 iterations)
-            return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
-                salt: salt,
-                prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 100000,
-                numBytesRequested: 256 / 8));
-        }
+            IsAuthenticated = false
+        };
     }
 
-    public class SignInResult
+    private static string HashPassword(string username, string password)
     {
-        public bool IsAuthenticated { get; set; }
+        var salt = System.Text.Encoding.UTF8.GetBytes(username);
 
-        public UserViewModel User { get; set; }
+        // derive a 256-bit subkey (use HMACSHA256 with 100,000 iterations)
+        return Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
     }
+}
+
+public class SignInResult
+{
+    public required bool IsAuthenticated { get; set; }
+
+    public UserViewModel? User { get; set; }
 }

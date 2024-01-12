@@ -1,9 +1,5 @@
 using AuthenticationService;
 using Microsoft.EntityFrameworkCore;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using System.Data;
-using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<AuthenticationService.AuthenticationService>();
 
-builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer("Server=mssqlsvr;Database=userdb;User=sa;Password=p@55w0rd;"));
+builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer("Server=mssqlsvr;Database=userdb;User=sa;Password=p@55w0rd;TrustServerCertificate=true"));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

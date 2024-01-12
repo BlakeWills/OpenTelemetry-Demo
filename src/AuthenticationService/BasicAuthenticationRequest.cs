@@ -1,9 +1,8 @@
-﻿namespace AuthenticationService
-{
-    public record BasicAuthenticationRequest
-    {
-        public string Username { get; set; }
+﻿namespace AuthenticationService;
 
-        public string Password { get; set; }
-    }
+public record BasicAuthenticationRequest
+{
+    public required string Username { get; set; }
+
+    public required string Password { get; set; }
 }

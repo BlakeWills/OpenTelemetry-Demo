@@ -1,15 +1,14 @@
-namespace WeatherApi
+namespace WeatherApi;
+
+public class WeatherForecast
 {
-    public class WeatherForecast
-    {
-        public DateTime Date { get; set; }
+    public DateTime Date { get; set; }
 
-        public int TemperatureC { get; set; }
+    public int TemperatureC { get; set; }
 
-        public int TemperatureF { get; set; }
+    public int TemperatureF { get; set; }
 
-        public string? Summary { get; set; }
+    public string? Summary { get; set; }
 
-        public string? Description { get; set; }
-    }
+    public string? Description { get; set; }
 }

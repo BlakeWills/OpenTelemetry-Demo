@@ -1,16 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthenticationService
+namespace AuthenticationService;
+
+public class UserDbModel
 {
-    public class UserDbModel
-    {
-        [Key]
-        public int UserId { get; set; }
+    [Key]
+    public int UserId { get; set; }
 
-        public string Username { get; set; }
+    public required string Username { get; set; }
 
-        public string Password { get; set; }
+    public required string Password { get; set; }
 
-        public string Country { get; set; }
-    }
+    public required string Country { get; set; }
 }

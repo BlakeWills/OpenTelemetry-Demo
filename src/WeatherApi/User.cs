@@ -1,9 +1,8 @@
-﻿namespace WeatherApi
-{
-    public class User
-    {
-        public string Name { get; set; }
+﻿namespace WeatherApi;
 
-        public string Country { get; set; }
-    }
+public class User
+{
+    public required string Name { get; set; }
+
+    public required string Country { get; set; }
 }

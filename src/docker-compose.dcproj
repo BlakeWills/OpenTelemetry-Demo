@@ -6,7 +6,7 @@
     <ProjectGuid>21cbc79e-0d97-41bf-84b3-173d2698097f</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>authenticationservice</DockerServiceName>
+    <DockerServiceName>weatherapi</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

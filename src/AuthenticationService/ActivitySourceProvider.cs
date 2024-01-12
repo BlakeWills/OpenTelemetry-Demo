@@ -1,14 +1,13 @@
 ﻿using System.Diagnostics;
 
-namespace AuthenticationService
-{
-    public class ActivitySourceProvider
-    {
-        public ActivitySourceProvider()
-        {
-            Current = new ActivitySource("mycompany.instrumentation");
-        }
+namespace AuthenticationService;
 
-        public ActivitySource Current { get; }
+public class ActivitySourceProvider
+{
+    public ActivitySourceProvider()
+    {
+        Current = new ActivitySource("mycompany.instrumentation");
     }
+
+    public ActivitySource Current { get; }
 }

@@ -13,6 +13,13 @@ services:
         ACCEPT_EULA: "Y"
     networks:
       - weatherapi_net
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P example_123 -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 10s
+      timeout: 3s
 
   authenticationservice:
     image: ${DOCKER_REGISTRY-}authenticationservice
@@ -24,6 +31,8 @@ services:
       - 8081:443
     networks:
       - weatherapi_net
+    depends_on:
+      - userdb
 
   forecastservice:
     image: ${DOCKER_REGISTRY-}forecastservice
@@ -45,6 +54,9 @@ services:
       - 8080:443
     networks:
       - weatherapi_net
+    depends_on:
+      - forecastservice
+      - authenticationservice
 
   collector:
     container_name: collector
