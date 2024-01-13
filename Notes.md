@@ -16,51 +16,49 @@
 - Start talking about OTEL, let's instrument the AuthenticationService.
 - Show packages.
 
-- Basic startup code.
+- Basic startup code:
 
 ```csharp
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Data;
-using System.Reflection;
 
 // ...
 
-// Configure OpenTelemetry Tracing
-builder.Services.AddOpenTelemetryTracing(builder =>
-{
-    builder.AddAspNetCoreInstrumentation();
-
-    builder.AddConsoleExporter();
-});
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation();
+        tracing.AddConsoleExporter();
+    });
 ```
 
-- Talk through Activity structure, then export to otel collector
+- Talk through Activity structure, then export to otel collector (within `WithTracing(tracing => { ... })`)
 
 ```csharp
-builder.AddOtlpExporter(options =>
+tracing.AddOtlpExporter(options =>
 {
-    options.Endpoint = new Uri("http://collector:4317"); 
+    options.Endpoint = new Uri("http://collector:4317");
 });
 ```
 
 - Talk through open telemetry collector config
 
-- Add resource builder to show info about service:
+- Add resource builder to show info about service (just below `AddOpenTelemetry()`):
 
 ```csharp
-var assemblyName = typeof(Program).Assembly.GetName();
-
-var resourceBuilder = ResourceBuilder.CreateEmpty()
-    .AddService(assemblyName.Name, serviceNamespace: "OtelTalk", assemblyName.Version!.ToString(), serviceInstanceId: Environment.MachineName);
-
-resourceBuilder.AddAttributes(new Dictionary<string, object>
+.ConfigureResource(resource =>
 {
-    { "deployment.environment", "production" },
-    { "mycompany.service.owningteam", "SRE" }
-});
+    resource.AddService(builder.Environment.ApplicationName,
+        serviceNamespace: "otelTalk",                                                // Group related services
+        serviceVersion: Assembly.GetEntryAssembly()!.GetName().Version!.ToString()); // REALLY useful for deployment tracking
 
-builder.SetResourceBuilder(resourceBuilder);
+    var attributes = new Dictionary<string, object>()
+    {
+        { "environment", "production" },            // Check the docs for your APM tool for correct naming. (DataDog is deployment.environment)
+        { "mycompany.service.owningteam", "SRE" }   // Useful for filtering and alerting
+    };
+
+    resource.AddAttributes(attributes);
+})
 ```
 
 - Set a breakpoint in the weather api and auth service to show trace context flow.
@@ -69,17 +67,21 @@ builder.SetResourceBuilder(resourceBuilder);
 - Add sql client instrumention:
 
 ```csharp
-builder.AddSqlClientInstrumentation();
+// EntityFramework:
+tracing.AddEntityFrameworkCoreInstrumentation();
+
+// Raw SQL:
+// tracing.AddSqlClientInstrumentation();
 ```
 
 ```csharp
-builder.AddSqlClientInstrumentation(x =>
+tracing.AddEntityFrameworkCoreInstrumentation(x=>
 {
-    x.Enrich = (activity, name, cmdObj) =>
+    //x.SetDbStatementForText = true;
+    x.EnrichWithIDbCommand = (activity, command) =>
     {
-        var command = (IDbCommand)cmdObj;
+        activity.AddTag("db.statement", command.CommandText);
         activity.DisplayName = command.CommandText;
-        activity.SetTag("peer.service", command.Connection.Database);
     };
 });
 ```
@@ -87,36 +89,26 @@ builder.AddSqlClientInstrumentation(x =>
 - Custom spans - hash password
 
 ```csharp
-\\ in program.cs
-var activitySourceProvider = new ActivitySourceProvider();
-builder.Services.AddSingleton<ActivitySourceProvider>(activitySourceProvider);
+// in AuthenticationService.cs
+private readonly ActivitySource _activitySource = new(TelemetryConstants.ActivitySource);
 
-...
-builder.AddSource(activitySourceProvider.Current.Name);
+// in HashPassword function:
+using var activity = _activitySource.StartActivity(nameof(HashPassword));
 
-\\ in AuthenticationService.cs
-\\ inject ActivitySourceProvider
-using var activity = _activitySourceProvider.Current.StartActivity(nameof(HashPassword), System.Diagnostics.ActivityKind.Internal);
+// in program.cs
+tracing.AddSource(TelemetryConstants.ActivitySource);
 ```
 
 - What about errors? `iwr https://localhost:8080/weatherforecast -Headers @{Authorization = "Basic thisisntbase64"}`
 
 ```csharp
-app.Use(async (context, next) =>
+tracing.AddAspNetCoreInstrumentation(x =>
 {
-    try
-    {
-        await next();
-    }
-    catch (Exception ex)
-    {
-        Activity.Current.RecordException(ex);
-        throw;
-    }
+    x.RecordException = true;
 });
 ```
 
-- Tags and baggage
+- NOT TESTED: Tags and baggage
 
 ```csharp
 // WeatherApi Controller

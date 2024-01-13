@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.EntityFrameworkCore;
 
 namespace AuthenticationService;
 
@@ -7,7 +8,7 @@ public class AuthenticationService(UserDbContext userDbContext)
     public async Task<SignInResult> AuthenticateUser(BasicAuthenticationRequest request)
     {
         var hashedPassword = HashPassword(request.Username, request.Password);
-        var user = userDbContext.Users.SingleOrDefault(u => u.Username == request.Username && u.Password == hashedPassword);
+        var user = await userDbContext.Users.SingleOrDefaultAsync(u => u.Username == request.Username && u.Password == hashedPassword);
 
         if(user != default)
         {
@@ -28,7 +29,7 @@ public class AuthenticationService(UserDbContext userDbContext)
         };
     }
 
-    private static string HashPassword(string username, string password)
+    private string HashPassword(string username, string password)
     {
         var salt = System.Text.Encoding.UTF8.GetBytes(username);
 
