@@ -13,24 +13,22 @@
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
-    <PackageReference Include="OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.7.0" />
-	<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.7.0" />
+	<!--Startup extensions and core pkg (OpenTelemetry)-->
 	<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
+	
+	<!--Additional instrumentation packages-->
 	<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.7.0" />
-	<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9" />
+	<PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.6.0-beta.3" />
 	<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <None Update="entrypoint.sh">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+	<!--Exporter packages-->
+	<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.7.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.7.0" />
   </ItemGroup>
 
 </Project>

@@ -9,15 +9,22 @@
 - Walk through architecture
 - Demo of what we get back from the API
 
-- Start talking about OTEL, let's instrument the services.
-
+```powershell
+(iwr https://localhost:8080/WeatherForecast -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json
 ```
+
+- Start talking about OTEL, let's instrument the AuthenticationService.
+- Show packages.
+
+- Basic startup code.
+
+```csharp
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Data;
 using System.Reflection;
 
-...
+// ...
 
 // Configure OpenTelemetry Tracing
 builder.Services.AddOpenTelemetryTracing(builder =>
@@ -30,7 +37,7 @@ builder.Services.AddOpenTelemetryTracing(builder =>
 
 - Talk through Activity structure, then export to otel collector
 
-```
+```csharp
 builder.AddOtlpExporter(options =>
 {
     options.Endpoint = new Uri("http://collector:4317"); 
@@ -41,7 +48,7 @@ builder.AddOtlpExporter(options =>
 
 - Add resource builder to show info about service:
 
-```
+```csharp
 var assemblyName = typeof(Program).Assembly.GetName();
 
 var resourceBuilder = ResourceBuilder.CreateEmpty()
@@ -61,11 +68,11 @@ builder.SetResourceBuilder(resourceBuilder);
 
 - Add sql client instrumention:
 
-```
+```csharp
 builder.AddSqlClientInstrumentation();
 ```
 
-```
+```csharp
 builder.AddSqlClientInstrumentation(x =>
 {
     x.Enrich = (activity, name, cmdObj) =>
@@ -79,7 +86,7 @@ builder.AddSqlClientInstrumentation(x =>
 
 - Custom spans - hash password
 
-```
+```csharp
 \\ in program.cs
 var activitySourceProvider = new ActivitySourceProvider();
 builder.Services.AddSingleton<ActivitySourceProvider>(activitySourceProvider);
@@ -94,7 +101,7 @@ using var activity = _activitySourceProvider.Current.StartActivity(nameof(HashPa
 
 - What about errors? `iwr https://localhost:8080/weatherforecast -Headers @{Authorization = "Basic thisisntbase64"}`
 
-```
+```csharp
 app.Use(async (context, next) =>
 {
     try
@@ -111,7 +118,7 @@ app.Use(async (context, next) =>
 
 - Tags and baggage
 
-```
+```csharp
 // WeatherApi Controller
 Activity.Current.AddTag("country", user.Country);
 Activity.Current.AddBaggage("country", user.Country);
@@ -130,7 +137,7 @@ app.Use(async (context, next) =>
 
 Custom events in Jaeger:
 
-```
+```csharp
 Activity.Current.AddEvent(new ActivityEvent("authEvent", tags: new ActivityTagsCollection()
 {
     { "customTag", "myValue" }
