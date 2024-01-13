@@ -24,13 +24,15 @@ public class ForecastProvider(ILogger<WeatherForecastController> logger)
     {
         logger.LogInformation("Generating forecast for {user} in {country}", user.Name, user.Country);
 
+        // The core of our really high tech, proprietary weather forecasting algorithm.
+        var temperature = Random.Shared.Next(-20, 55);
         var summary = _summaries[Random.Shared.Next(_summaries.Length)];
 
         return new WeatherForecast
         {
-            Date = DateTime.Now,
+            Date = DateTime.UtcNow,
             Description = $"Hi {user.Name}! Today in {user.Country} it's going to be {summary}.",
-            TemperatureC = Random.Shared.Next(-20, 55),
+            TemperatureC = temperature,
             Summary = summary
         };
     }

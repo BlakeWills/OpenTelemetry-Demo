@@ -8,8 +8,8 @@ namespace WeatherApi.Controllers;
 public class WeatherForecastController(
     ForecastClient forecastClient) : ControllerBase
 {
-    [HttpGet(Name = "GetWeatherForecast")]
     [Authorize]
+    [HttpGet(Name = "GetWeatherForecast")]
     public async Task<WeatherForecast> Get()
     {
         var user = HttpContext.GetCurrentUser();

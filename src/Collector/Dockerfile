@@ -1,5 +1,5 @@
 FROM otel/opentelemetry-collector-contrib
-COPY ./config.yaml /etc/otel/config.yaml
+COPY ./config.yaml /etc/otelcol-contrib/config.yaml
 
 EXPOSE 9200
 EXPOSE 13133
