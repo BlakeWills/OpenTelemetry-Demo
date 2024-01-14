@@ -8,6 +8,15 @@ processors:
   batch:
     timeout: 1s # For demo only. In prod we have 10s
 
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/transformprocessor/README.md
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/contexts/ottlspan
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/ottlfuncs
+  transform:
+    trace_statements:
+      - context: span
+        statements:
+          - set(attributes["operation_name"], Concat([ConvertCase(instrumentation_scope.name, "lower"), ConvertCase(kind.string, "lower")], "."))
+
 exporters:
   otlp:
     endpoint: tempo:4317
@@ -15,13 +24,13 @@ exporters:
       insecure: true
 
   logging:
-    loglevel: "info" 
+    verbosity: normal # detailed
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [batch, transform]
       exporters: [otlp, logging]
   telemetry:
     logs:

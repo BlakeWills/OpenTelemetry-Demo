@@ -33,6 +33,13 @@ compactor:
     block_retention: 1h                # overall Tempo trace retention. set for demo purposes
 
 metrics_generator:
+  processor:
+    span_metrics:
+      dimensions: 
+        - "http.route"
+        - "http.response.status_code"
+        - "service.version"
+        - "operation_name"
   registry:
     external_labels:
       source: tempo
