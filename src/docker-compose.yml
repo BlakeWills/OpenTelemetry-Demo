@@ -83,6 +83,15 @@ services:
     networks:
       - weatherapi_net
 
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - weatherapi_net
+
   prometheus:
     image: prom/prometheus:v2.48.1
     container_name: prometheus
@@ -99,6 +108,7 @@ services:
 
   grafana:
     image: grafana/grafana:10.2.3
+    container_name: grafana
     volumes:
       - ./Shared/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     environment:

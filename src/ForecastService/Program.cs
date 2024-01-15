@@ -1,4 +1,6 @@
 using ForecastService.Controllers;
+using ForecastService.Middleware;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
@@ -30,16 +32,28 @@ builder.Services.AddOpenTelemetry()
     })
     .WithTracing(tracingConfig =>
     {
-        tracingConfig.AddAspNetCoreInstrumentation();
+        tracingConfig.AddAspNetCoreInstrumentation(cfg =>
+        {
+            cfg.RecordException = true;
+        });
+
         tracingConfig.AddSqlClientInstrumentation();
 
-        AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true); // required for HTTP Grpc
         tracingConfig.AddOtlpExporter(options =>
         {
-            options.Endpoint = new Uri("http://collector:4317"); // @ Codat we fetch this from KeyVault, I promise
+            options.Endpoint = new Uri("http://collector:4317");
         });
     });
-   
+
+builder.Services.AddLogging(logging => logging.AddOpenTelemetry(otel =>
+{
+    otel.AddOtlpExporter(options =>
+    {
+        options.Endpoint = new Uri("http://collector:4317");
+    });
+}));
+
+builder.Services.AddSingleton<BaggageMiddleware>();
 
 var app = builder.Build();
 
@@ -55,5 +69,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<BaggageMiddleware>();
 
 app.Run();

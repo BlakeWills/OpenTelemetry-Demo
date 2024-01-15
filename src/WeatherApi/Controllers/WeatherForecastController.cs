@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace WeatherApi.Controllers;
 
@@ -13,6 +14,10 @@ public class WeatherForecastController(
     public async Task<WeatherForecast> Get()
     {
         var user = HttpContext.GetCurrentUser();
+
+        Activity.Current?.AddTag("user.country", user.Country);
+        Activity.Current?.AddBaggage("user.country", user.Country);
+
         return await forecastClient.GetForecastForUser(user);
     }
 }

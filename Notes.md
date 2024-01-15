@@ -135,3 +135,9 @@ Activity.Current.AddEvent(new ActivityEvent("authEvent", tags: new ActivityTagsC
     { "customTag", "myValue" }
 }));
 ```
+
+# Prometheus
+
+- http://localhost:9090
+- Metrics are prefixed with `traces_spanmetrics_xxx`
+- `traces_spanmetrics_calls_total{operation_name="microsoft.aspnetcore.server",service="WeatherApi"}`

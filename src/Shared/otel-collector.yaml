@@ -8,14 +8,22 @@ processors:
   batch:
     timeout: 1s # For demo only. In prod we have 10s
 
+  # Add custom attributes to use in spanmetrics
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/transformprocessor/README.md
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/contexts/ottlspan
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/ottlfuncs
-  transform:
+  transform/traces:
     trace_statements:
       - context: span
         statements:
           - set(attributes["operation_name"], Concat([ConvertCase(instrumentation_scope.name, "lower"), ConvertCase(kind.string, "lower")], "."))
+
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/lokiexporter#configuration-via-attribute-hints
+  attributes/logs:
+    actions:
+      - action: insert
+        key: loki.attribute.labels
+        value: traceid, spanid
 
 exporters:
   otlp:
@@ -23,15 +31,28 @@ exporters:
     tls:
       insecure: true
 
-  logging:
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: true
+      job: true
+
+  logging/traces:
     verbosity: normal # detailed
+
+  logging/logs:
+    verbosity: detailed
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch, transform]
-      exporters: [otlp, logging]
+      processors: [batch, transform/traces]
+      exporters: [otlp, logging/traces]
+    logs:
+      receivers: [otlp]
+      processors: [batch, attributes/logs]
+      exporters: [loki, logging/logs]
   telemetry:
     logs:
       level: "debug"
