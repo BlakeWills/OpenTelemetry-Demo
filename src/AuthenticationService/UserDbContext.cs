@@ -14,7 +14,8 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         {
             UserId = 1,
             Username = "blake",
-            Password = "BU7XwhE8WoCzAQZM0KprvaeixSdhrmfS301z+G6mSq4=", // p@55w0rd
+            //Password = "BU7XwhE8WoCzAQZM0KprvaeixSdhrmfS301z+G6mSq4=", // p@55w0rd (100k iterations)
+            Password = "92armb4515Rnhnp95bp+b82nvwmFnKzpCgMjEfiGpc4=", // p@55w0rd (500k iterations)
             Country = "UK"
         });
     }

@@ -16,16 +16,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{21CBC79E-0D97-41BF-84B3-173D2698097F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Collector", "Collector", "{5E8EE268-41B7-4D4B-8FF4-B1D2863D6821}"
-	ProjectSection(SolutionItems) = preProject
-		Collector\config.yaml = Collector\config.yaml
-		Collector\Dockerfile = Collector\Dockerfile
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Prometheus", "Prometheus", "{321F30E0-8793-4ED4-BB2C-D67E2046A7C7}"
 	ProjectSection(SolutionItems) = preProject
 		Prometheus\Dockerfile = Prometheus\Dockerfile
 		Prometheus\prometheus.yml = Prometheus\prometheus.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{9292D0F1-F294-4F38-9DAA-8E84F93A8F4A}"
+	ProjectSection(SolutionItems) = preProject
+		Shared\grafana-datasources.yaml = Shared\grafana-datasources.yaml
+		Shared\otel-collector.yaml = Shared\otel-collector.yaml
+		Shared\prometheus.yaml = Shared\prometheus.yaml
+		Shared\tempo.yaml = Shared\tempo.yaml
 	EndProjectSection
 EndProject
 Global

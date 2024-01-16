@@ -26,7 +26,11 @@ using OpenTelemetry.Trace;
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
     {
-        tracing.AddAspNetCoreInstrumentation();
+        tracingConfig.AddAspNetCoreInstrumentation(cfg =>
+        {
+            cfg.RecordException = true;
+        });
+
         tracing.AddConsoleExporter();
     });
 ```
@@ -40,11 +44,12 @@ tracing.AddOtlpExporter(options =>
 });
 ```
 
-- Talk through open telemetry collector config
-
 - Add resource builder to show info about service (just below `AddOpenTelemetry()`):
 
 ```csharp
+using System.Reflection;
+using OpenTelemetry.Resources;
+
 .ConfigureResource(resource =>
 {
     resource.AddService(builder.Environment.ApplicationName,
@@ -61,6 +66,7 @@ tracing.AddOtlpExporter(options =>
 })
 ```
 
+- SHOW TRACE CONTEXT PROPOGATION
 - Set a breakpoint in the weather api and auth service to show trace context flow.
 - Show demo code for custom context propagation
 
