@@ -10,7 +10,7 @@ I originally built this system as a demo for my "Better Observability in .NET wi
 
 ## What can you do with this repo?
 
-Both the WeatherAPI and the ForecastService are already instrumented, so you could start by exploring the configuration, and then following the `Instrument the AuthenticationService` guide to walk through using OpenTelemetry to instrument a service, from scratch. 
+Both the WeatherAPI and the ForecastService are already instrumented, so you could start by exploring the configuration, and then following the [AuthenticationService Instrumentarion](docs/AuthenticationServiceInstrumentation.md) guide to walk through using OpenTelemetry to instrument a service, from scratch. 
 
 You could also 
 
