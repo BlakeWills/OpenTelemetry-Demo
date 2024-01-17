@@ -4,12 +4,12 @@ If we load up a trace in Grafana we can see spans for the WeatherApi and the For
 
 ![Starting Instrumentation](images/StartingInstrumentation.png)
 
-[!NOTE]  
-You'll fire off multiple requests to the WeatherApi during this walkthrough, don't worry if you get a 500 error intermittently, this is intentional to show how exceptions are displayed in the traces!
+> [!NOTE]  
+> Don't worry if you get intermittent 500 errors as part of this walk-through. These errors are intentional to show how exceptions are displayed in the traces.
 
 ## Starting with the basics
 
-The first thing we need are the `OpenTelemetry` NuGet packages. Since I use this system for a demo the packages are already installed, but you can go ahead and take a look at the AuthenticationService csproj file to see what's been added.
+The first thing we need is the `OpenTelemetry` NuGet packages. Since I use this system for a demo the packages are already installed, but you can go ahead and take a look at the AuthenticationService `csproj` file to see what's been added.
 
 ```xml
 <ItemGroup>
@@ -46,7 +46,7 @@ builder.Services.AddOpenTelemetry()
     });
 ```
 
-Here, we're calling `AddOpenTelemetry()` to register the OpenTelemetry services in our `IServiceCollection`. We then call enable tracing by calling `.WithTracing(...)` with a delegate to configure a `TracerBuilderProvider` according to our requirements. In this case, we're keeping it simple and enabling AspNetCore instrumentation, so we get a span for each incoming HTTP request, and we're exporting those spans to the console.
+Here, we're calling `AddOpenTelemetry()` to register the OpenTelemetry services in our `IServiceCollection`. We then enable tracing by calling `.WithTracing(...)` with a delegate to configure a `TracerBuilderProvider` according to our requirements. In this case, we're keeping it simple and enabling AspNetCore instrumentation, so we get a span for each incoming HTTP request, and we're exporting those spans to the console.
 
 Start debugging and send a request to the WeatherApi to invoke the `AuthenticationService`, and then take a look at the console logs.
 
@@ -75,16 +75,16 @@ Start debugging and send a request to the WeatherApi to invoke the `Authenticati
 2024-01-17 19:55:19     service.name: unknown_service:dotnet
 ```
 
-We've got our span exported to the console, the reason all the properties are prefixed with `Activity.*` is because the `System.Diagnostics.Activity` class represents a span in .Net. .Net is unique in the OpenTelemetry ecosystem, in thaat we already had a type (`Activity`) that was being used to instrument services and produce events (Etw events to be exact), so rather than start from scratch the .Net team decided to re-use `Activity` to implement the OpenTelemetry spec. Just for clarity `Span == Activity`.
+We've got our span exported to the console, the reason all the properties are prefixed with `Activity.*` is because the `System.Diagnostics.Activity` class represents a span in .Net. .Net is unique in the OpenTelemetry ecosystem, in that we already had a type (`Activity`) that was being used to instrument services and produce events (Etw events to be exact), so rather than start from scratch the .Net team decided to re-use `Activity` to implement the OpenTelemetry spec. Just for clarity `Span == Activity`.
 
-Most of these fields are self explanatory, but lets take a look at some of them:
+Most of these fields are self-explanatory, let's take a look at some of the others:
 - `TraceId` - Randomly generated identifier that represents the "full path" a request takes through your system. 
 - `SpanId` - Randomly generated identifier that represents the current operation.
 - `DisplayName` - A friendly name for the current operation.
 - `Tags` - Additional attributes added manually, or by instrumentation libraries, to add rich context to telemetry data.
 - `Resource associated with Activity` - Attributes for the service that produced the span.
   
-We've got some useful information here like the status code and the duration, so lets export this to the `OpenTelemetryCollector`, which forwards the events on to `Tempo` for us. Replace `AddConsoleExporter` with the following snippet:
+We've got some useful information here like the status code and the duration, so let's export this to the `OpenTelemetryCollector`, which forwards the events to `Tempo` for us. Replace `AddConsoleExporter` with the following snippet:
 
 ```csharp
 tracing.AddOtlpExporter(options =>
@@ -93,7 +93,7 @@ tracing.AddOtlpExporter(options =>
 });
 ```
 
-This tells OpenTelemetry that we want to export spans using the OTLP protocol, and we've provided the endpoint to send them to. In our case this is the url of the OpenTelemetryCollector running in docker. 
+This tells OpenTelemetry that we want to export spans using the OTLP protocol, and we've provided the endpoint to send them to. In our case, this is the URL of the `OpenTelemetryCollector` running in docker. 
 
 Let's start debugging and send another request, then open up Grafana:
 
@@ -125,26 +125,26 @@ builder.Services.AddOpenTelemetry()
         // ...
 ```
 
-Here we're calling `ConfigureResource` to set some resource level attributes that apply to all spans produced by this service. The call to `AddService()` specifies a service name, namespace and version (adding the version is probably the single most useful attribute you can add to help diagnose issues with new releases!). We're also adding some custom attributes, like the `environment` and `owningteam`.
+Here we're calling `ConfigureResource` to set some resource-level attributes that apply to all spans produced by this service. The call to `AddService()` specifies a service name, namespace and version (adding the version is probably the single most useful attribute you can add to help diagnose issues with new releases!). We're also adding some custom attributes, like the `environment` and `owningteam`.
 
 Again, start debugging, send a request and view the trace in Grafana.
 
-## How is trace context propogated?
+## How is trace context propagated?
 
-We've got some basic instrumentation for our `AuthenticationService`, now is a good time to get the debugger out and figure out how trace context is propogated between services.
+We've got some basic instrumentation for our `AuthenticationService`, now is a good time to get the debugger out and figure out how trace context is propagated between services.
 
 Set a couple of breakpoints, start debugging, then send a request:
 
 - `WeatherApi` > `BasicAuthenticationHandler` > `using var httpClient = _httpClientFactory.CreateClient("UnsafeHttpClient");`
 - `AuthenticationService` > `AuthenticationController` > `Authenticate` > `var authHeader = Request.Headers.Authorization.ToString();`
 
-When the first breakpoint gets hit in the `WeatherApi`, open the `Watch` window and add a watch for `System.Diagnsotics.Activity.Current`. `Activity.Current` is a `static AsyncLocal`, and contains the context for the current trace. Take note of the `TraceId` and continue execution.
+When the first breakpoint gets hit in the `WeatherApi`, open the `Watch` window and add a watch for `System.Diagnostics.Activity.Current`. `Activity.Current` is a `static AsyncLocal`, and contains the context for the current trace. Take note of the `TraceId` and continue execution.
 
-![Trace context propogation](images/TraceContextPropogation-BP1.png)
+![Trace context propagation](images/TraceContextPropagation-BP1.png)
 
 When you hit the second breakpoint in the `AuthenticationService`, use the `locals` tab to view the `Request.Header` values. Here you should see a header called `traceparent`, containing the `traceid` we took note of in the previous breakpoint!
 
-![Trace context propogation](images/TraceContextPropogation-BP2.png)
+![Trace context propagation](images/TraceContextPropagation-BP2.png)
 
 To summarise what we just saw: trace context is propogated across HTTP boundaries via the HTTP headers. This works as `HttpClient` is "OpenTelemetry aware" - it will always add a `traceparent` header if `Activity.Current` is set. 
 
@@ -154,7 +154,7 @@ Let's get back to instrumenting our code. We know from our architecture diagram 
 
 Luckily, we don't have to go and instrument every database query in our code, we can just add `tracing.AddEntityFrameworkCoreInstrumentation();` to our `WithTracing(...)` delegate.
 
-You know the drill, start debugging, fire of a request, view the results in Grafana:
+You know the drill, start debugging, fire a request, and view the results in Grafana:
 
 ![Add Entity Framework Instrumentation](images/AddEntityFrameworkInstrumentation.png)
 
@@ -176,7 +176,7 @@ tracing.AddEntityFrameworkCoreInstrumentation(x=>
 });
 ```
 
-Now we're calling `EnrichWithIDbCommand` which gives us the `Activity` and the `IDbCommand`, so we can add any attributes we'd like from the command object. In this case we're going to add a `db.statement` tag and update the display name to the command text. (This can be very useful in systems like DataDog, where metrics are calculated from spans and the `DisplayName` is used as a metric dimension - this means we can get client side database metrics for each query!).
+Now we're calling `EnrichWithIDbCommand` which gives us the `Activity` and the `IDbCommand`, so we can add any attributes we'd like from the command object. In this case, we're going to add a `db.statement` tag and update the display name to the command text. (This can be very useful in systems like DataDog, where metrics are calculated from spans and the `DisplayName` is used as a metric dimension - this means we can get client-side database metrics for each query!).
 
 Fire off another request and view the result in Grafana:
 
@@ -188,7 +188,7 @@ If we take a look at the `AuthenticateUser` method within the `AuthenticationSer
 1. Hash the users password
 2. Query the database to find the user
 
-We know the query isn't taking all the time, so could it be the `HashPassword()` method? Unfortunately there's no `AddHashPasswordInstrumentation` library, but we can add our own instrumentation by wrapping the code in an `Activity`.
+We know the query isn't taking all the time, so could it be the `HashPassword()` method? Unfortunately, there's no `AddHashPasswordInstrumentation` library, but we can add custom instrumentation by wrapping the code in an `Activity`.
 
 First, we need an `System.Diagnostics.ActivitySource` to create activities from, so add the following field to the top of the `AuthenticationService` class.
 
@@ -196,7 +196,7 @@ First, we need an `System.Diagnostics.ActivitySource` to create activities from,
 private readonly ActivitySource _activitySource = new("mycompany.instrumentation");
 ```
 
-`mycompany.instrumentation` is the name of the activity source, and we'll use this later to tell OpenTelemetry to listen to activites produced by this  `ActivitySource`.
+`mycompany.instrumentation` is the name of the activity source, and we'll use this later to tell OpenTelemetry to listen to activities produced by this  `ActivitySource`.
 
 Next, wrap our `HashPassword()` logic with an `Activity`, by calling `ActivitySource.StartActivity(name)`:
 
