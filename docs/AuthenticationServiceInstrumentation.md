@@ -7,6 +7,17 @@ If we load up a trace in Grafana we can see spans for the WeatherApi and the For
 > [!NOTE]  
 > Don't worry if you get intermittent 500 errors as part of this walk-through. These errors are intentional to show how exceptions are displayed in the traces.
 
+- [Instrumenting the AuthenticationService](#instrumenting-the-authenticationservice)
+  - [Starting with the basics](#starting-with-the-basics)
+    - [Enable Tracing](#enable-tracing)
+    - [Export traces to the OpenTelemetryCollector](#export-traces-to-the-opentelemetrycollector)
+    - [Setting resource attributes](#setting-resource-attributes)
+  - [How is trace context propagated?](#how-is-trace-context-propagated)
+  - [Instrumenting database queries](#instrumenting-database-queries)
+    - [Enriching the spans](#enriching-the-spans)
+  - [Custom instrumentation](#custom-instrumentation)
+
+
 ## Starting with the basics
 
 The first thing we need is the `OpenTelemetry` NuGet packages. Since I use this system for a demo the packages are already installed, but you can go ahead and take a look at the AuthenticationService `csproj` file to see what's been added.
@@ -31,6 +42,8 @@ Here we have:
 - `OpenTelemetry.Extensions.Hosting` - this imports the core `OpenTelemetry` packages along with some useful startup extensions.
 - `OpenTelemetry.Instrumentation.xxx` - these packages contain extension methods for configuring instrumentation for different libraries/frameworks/services.
 - `OpenTelemetry.Exporter.xxx` - these packages contain exporters, which send telemetry to different back-end systems.
+
+### Enable Tracing
 
 Let's go ahead and configure some basic tracing instrumentation so we can see our incoming HTTP requests. Add the following code to `Program.cs`:
 
@@ -83,6 +96,8 @@ Most of these fields are self-explanatory, let's take a look at some of the othe
 - `DisplayName` - A friendly name for the current operation.
 - `Tags` - Additional attributes added manually, or by instrumentation libraries, to add rich context to telemetry data.
 - `Resource associated with Activity` - Attributes for the service that produced the span.
+
+### Export traces to the OpenTelemetryCollector
   
 We've got some useful information here like the status code and the duration, so let's export this to the `OpenTelemetryCollector`, which forwards the events to `Tempo` for us. Replace `AddConsoleExporter` with the following snippet:
 
