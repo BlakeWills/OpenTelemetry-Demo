@@ -10,9 +10,7 @@ I originally built this system as a demo for my "Better Observability in .NET wi
 
 ## What can you do with this repo?
 
-Both the WeatherAPI and the ForecastService are already instrumented, so you could start by exploring the configuration, and then following the [AuthenticationService Instrumentarion](docs/AuthenticationServiceInstrumentation.md) guide to walk through using OpenTelemetry to instrument a service, from scratch. 
-
-You could also 
+Both the WeatherAPI and the ForecastService are already instrumented, so you could start by exploring the configuration, and then following the [AuthenticationService Instrumentation](docs/AuthenticationServiceInstrumentation.md) guide to walk through using OpenTelemetry to instrument a service, from scratch. 
 
 ## Getting Started
 
@@ -22,8 +20,7 @@ You could also
 
 ```powershell
 while($true) {
-    (iwr https://localhost:8080/WeatherForecast -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content
-    | ConvertFrom-Json; Start-Sleep -Seconds 2
+    (iwr https://localhost:8080/WeatherForecast -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 2
 }
 ```
 
