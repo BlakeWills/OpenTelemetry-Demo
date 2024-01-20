@@ -6,6 +6,9 @@ services:
     image: "mcr.microsoft.com/mssql/server:2022-latest"
     container_name: mssqlsvr
     hostname: mssqlsvr
+    volumes:
+      - ./Shared/mssql/data:/var/opt/mssql/data
+      - ./Shared/mssql/log:/var/opt/mssql/log
     ports:
       - 1433:1433
     environment:
@@ -101,6 +104,7 @@ services:
       - --enable-feature=exemplar-storage
     volumes:
       - ./Shared/prometheus.yaml:/etc/prometheus.yaml
+      - ./Shared/prometheus-data:/prometheus
     ports:
       - "9090:9090"
     networks:
@@ -111,6 +115,7 @@ services:
     container_name: grafana
     volumes:
       - ./Shared/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./Shared/grafana-data:/var/lib/grafana
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin

@@ -398,3 +398,8 @@ FodyWeavers.xsd
 *.sln.iml
 
 src/tempo-data
+src/Shared/prometheus-data/*
+src/Shared/mssql/*
+src/Shared/grafana-data/*
+
+!src/Shared/grafana-data/grafana.db

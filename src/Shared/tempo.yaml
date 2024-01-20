@@ -39,7 +39,7 @@ metrics_generator:
         - "http.route"
         - "http.response.status_code"
         - "service.version"
-        - "operation_name"
+        - "operation.name"
   registry:
     external_labels:
       source: tempo

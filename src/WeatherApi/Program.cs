@@ -46,9 +46,15 @@ builder.Services.AddOpenTelemetry()
     })
     .WithTracing(tracingConfig =>
     {
-        tracingConfig.AddAspNetCoreInstrumentation();
-        tracingConfig.AddSqlClientInstrumentation();
-        tracingConfig.AddHttpClientInstrumentation();
+        tracingConfig.AddAspNetCoreInstrumentation(cfg =>
+        {
+            cfg.RecordException = true;
+        });
+
+        tracingConfig.AddHttpClientInstrumentation(cfg =>
+        {
+            cfg.RecordException = true;
+        });
 
         tracingConfig.AddOtlpExporter(options =>
         {

@@ -16,7 +16,7 @@ processors:
     trace_statements:
       - context: span
         statements:
-          - set(attributes["operation_name"], Concat([ConvertCase(instrumentation_scope.name, "lower"), ConvertCase(kind.string, "lower")], "."))
+          - set(attributes["operation.name"], Concat([ConvertCase(instrumentation_scope.name, "lower"), ConvertCase(kind.string, "lower")], "."))
 
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/lokiexporter#configuration-via-attribute-hints
   attributes/logs:

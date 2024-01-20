@@ -37,8 +37,6 @@ builder.Services.AddOpenTelemetry()
             cfg.RecordException = true;
         });
 
-        tracingConfig.AddSqlClientInstrumentation();
-
         tracingConfig.AddOtlpExporter(options =>
         {
             options.Endpoint = new Uri("http://collector:4317");
