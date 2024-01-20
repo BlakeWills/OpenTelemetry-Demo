@@ -121,5 +121,15 @@ services:
     networks:
       - weatherapi_net
 
+  loadgen:
+    image: mcr.microsoft.com/powershell
+    container_name: loadgen
+    command: 
+      - pwsh 
+      - -c 
+      - 'while(1 -eq 1) { (iwr https://weatherapi/WeatherForecast -SkipCertificateCheck -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 2 }'
+    networks:
+      - weatherapi_net
+
 networks:
   weatherapi_net:
