@@ -4,8 +4,9 @@ If we load up a trace in Grafana we can see spans for the WeatherApi and the For
 
 ![Starting Instrumentation](images/StartingInstrumentation.png)
 
+
 > [!NOTE]  
-> Don't worry if you get intermittent 500 errors as part of this walk-through. These errors are intentional to show how exceptions are displayed in the traces.
+> Don't worry if you get intermittent 500 errors or exceptions when running this project. These errors are intentional to show how exceptions are handled within the telemetry.
 
 - [Instrumenting the AuthenticationService](#instrumenting-the-authenticationservice)
   - [Starting with the basics](#starting-with-the-basics)

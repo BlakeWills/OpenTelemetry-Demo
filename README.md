@@ -15,16 +15,15 @@ Both the WeatherAPI and the ForecastService are already instrumented, so you cou
 ## Getting Started
 
 1. Clone the repo
-2. Run `docker compose up -d` from the root of the repository.
-3. Kick of some requests using the following PowerShell snippet:
+2. Open in Visual Studio and start debugging the `docker-compose` launch profile
+3. Open Grafana at http://localhost:3000
 
-```powershell
-while($true) {
-    (iwr https://localhost:8080/WeatherForecast -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 2
-}
-```
+> [!NOTE]
+> `docker compose up` does not currently work with this solution, so running from Visual Studio is recommended.
 
-4. Explore Grafana by loading up http://localhost:3000 in your browser.
+
+> [!NOTE]  
+> Don't worry if you get intermittent 500 errors or exceptions when running this project. These errors are intentional to show how exceptions are handled within the telemetry.
 
 ## Roadmap
 
