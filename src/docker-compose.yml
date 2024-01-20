@@ -127,7 +127,7 @@ services:
     command: 
       - pwsh 
       - -c 
-      - 'while(1 -eq 1) { (iwr https://weatherapi/WeatherForecast -SkipCertificateCheck -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 2 }'
+      - 'while(1 -eq 1) { (iwr https://weatherapi/WeatherForecast -SkipCertificateCheck -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 1 }'
     networks:
       - weatherapi_net
 
