@@ -19,11 +19,11 @@ processors:
           - set(attributes["operation.name"], Concat([ConvertCase(instrumentation_scope.name, "lower"), ConvertCase(kind.string, "lower")], "."))
 
   # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/lokiexporter#configuration-via-attribute-hints
-  attributes/logs:
-    actions:
+  resource:
+    attributes:
       - action: insert
-        key: loki.attribute.labels
-        value: traceid, spanid
+        key: loki.resource.labels
+        value: environment
 
 exporters:
   otlp:
@@ -51,7 +51,7 @@ service:
       exporters: [otlp, logging/traces]
     logs:
       receivers: [otlp]
-      processors: [batch, attributes/logs]
+      processors: [batch, resource]
       exporters: [loki, logging/logs]
   telemetry:
     logs:
