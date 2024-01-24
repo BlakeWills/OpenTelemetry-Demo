@@ -36,6 +36,12 @@ services:
       - weatherapi_net
     depends_on:
       - userdb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
 
   forecastservice:
     image: ${DOCKER_REGISTRY-}forecastservice
@@ -47,6 +53,12 @@ services:
       - 8082:443
     networks:
       - weatherapi_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
 
   weatherapi:
     image: ${DOCKER_REGISTRY-}weatherapi
@@ -60,6 +72,12 @@ services:
     depends_on:
       - forecastservice
       - authenticationservice
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/status"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
 
   collector:
     image: otel/opentelemetry-collector-contrib:0.92.0
@@ -79,7 +97,7 @@ services:
       - ./tempo-data:/tmp/tempo
     ports:
       - "14268"  # jaeger ingest
-      - "3200"   # tempo
+      - "3200:3200"   # tempo
       - "4317"   # otlp grpc
       - "4318"   # otlp http
       - "9411"   # zipkin
@@ -91,7 +109,9 @@ services:
     container_name: loki
     ports:
       - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
+    command:
+      - -validation.allow-structured-metadata
+      - -config.file=/etc/loki/local-config.yaml
     networks:
       - weatherapi_net
 
@@ -127,14 +147,14 @@ services:
       - weatherapi_net
 
   loadgen:
-    image: mcr.microsoft.com/powershell
+    image: loadgen
+    build:
+      context: ./Shared/load-gen
     container_name: loadgen
-    command: 
-      - pwsh 
-      - -c 
-      - 'while(1 -eq 1) { (iwr https://weatherapi/WeatherForecast -SkipCertificateCheck -Headers @{ Authorization = "Basic Ymxha2U6cEA1NXcwcmQ=" }).Content | ConvertFrom-Json; Start-Sleep -Seconds 1 }'
     networks:
       - weatherapi_net
+    depends_on:
+      - weatherapi
 
 networks:
   weatherapi_net:

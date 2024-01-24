@@ -8,9 +8,9 @@ namespace ForecastService.Controllers;
 public class WeatherForecastController(ForecastProvider forecastProvider) : ControllerBase
 {
     [HttpGet("GetForecastForUser")]
-    public WeatherForecast Get(User user)
+    public async Task<WeatherForecast> Get(User user)
     {
-        return forecastProvider.Get(user);
+        return await forecastProvider.Get(user);
     }
 }
 
@@ -18,36 +18,52 @@ public class ForecastProvider(ILogger<WeatherForecastController> logger)
 {
     private static readonly Dictionary<int, string> _summaries = new()
     {
-        { -30, "the start of Ice Age 5. Say hi to Sid" },
-        { -20, "really, really cold" },
-        { -10, "really cold" },
+        { -30, "very, very, very cold" },
+        { -20, "very, very cold" },
+        { -10, "very cold" },
         { 0, "cold" },
         { 10, "meh" },
-        { 20, "great for a BBQ" },
-        { 30, "a little too warm" },
-        { 50, "oh god my face is melting" },
+        { 20, "warm" },
+        { 30, "really warm" },
+        { 50, "really, really warm" }
     };
 
-    public WeatherForecast Get(User user)
+    public async Task<WeatherForecast> Get(User user)
     {
         logger.LogInformation("Generating forecast for {user} in {country}", user.Name, user.Country);
 
-        var temperature = GetTemperature();
+        var temperature = await GetForecast(user.Country);
         var summary = GetSummary(temperature);
 
         return new WeatherForecast
         {
             Date = DateTime.UtcNow,
-            Description = $"Hi {user.Name}! Today in {user.Country} it's going to be {summary}.",
+            Greeting = $"Hi {user.Name}! Today in {user.Country} it's going to be {summary}.",
             TemperatureC = temperature,
             Summary = summary
         };
     }
 
-    private static int GetTemperature()
+    /// <summary>
+    /// The core of our really high tech, proprietary weather forecasting algorithm.
+    /// </summary>
+    /// <param name="country"></param>
+    private static async Task<int> GetForecast(string country)
     {
-        // The core of our really high tech, proprietary weather forecasting algorithm.
-        var temperature = Random.Shared.Next(-20, 55);
+        int temperature;
+
+        if (country.Equals("uk", StringComparison.CurrentCultureIgnoreCase))
+        {
+            // Nice and fast because we can assume it's always raining.
+            temperature = Random.Shared.Next(-10, 40);
+        }
+        else
+        {
+            // Actually do some work
+            await Task.Delay(millisecondsDelay: Random.Shared.Next(0, 500));
+
+            temperature = Random.Shared.Next(-20, 55);
+        }
 
         Activity.Current?.AddTag("forecast.temperatureC", temperature);
 
@@ -56,6 +72,6 @@ public class ForecastProvider(ILogger<WeatherForecastController> logger)
 
     private static string GetSummary(int temp)
     {
-        return _summaries[((temp / 10)) * 10];
+        return _summaries[temp / 10 * 10];
     }
 }

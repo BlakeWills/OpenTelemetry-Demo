@@ -11,6 +11,7 @@ builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer("Se
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 // TODO: Add OTEL
 
@@ -29,6 +30,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapHealthChecks("/status");
 
 app.UseHttpsRedirection();
 

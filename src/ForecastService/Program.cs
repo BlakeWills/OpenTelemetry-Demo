@@ -13,6 +13,7 @@ builder.Services.AddSingleton<ForecastProvider>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource =>
@@ -61,6 +62,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapHealthChecks("/status");
 
 app.UseHttpsRedirection();
 
